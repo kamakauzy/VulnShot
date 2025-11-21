@@ -43,14 +43,23 @@ class WPScanParser:
     
     def _extract_url(self, content: str) -> str:
         """Extract target URL"""
-        # Try with ANSI color codes (colored output)
-        match = re.search(r'\[32m\[\+\]\[0m URL:\s+(https?://[^\s]+)', content)
+        # Try with ANSI color codes (with ESC character: \x1b or \033)
+        match = re.search(r'\x1b\[32m\[\+\]\x1b\[0m\s+URL:\s+(https?://[^\s]+)', content)
         if match:
             url = match.group(1)
             # Remove trailing slash and any IP notation in brackets
             url = url.rstrip('/')
             url = re.sub(r'\s*\[[\d\.]+\]$', '', url)
-            self.logger.debug(f"Extracted URL (ANSI): {url}")
+            self.logger.debug(f"Extracted URL (ANSI with ESC): {url}")
+            return url
+        
+        # Try without escape character (in case it's already been processed)
+        match = re.search(r'\[32m\[\+\]\[0m\s+URL:\s+(https?://[^\s]+)', content)
+        if match:
+            url = match.group(1)
+            url = url.rstrip('/')
+            url = re.sub(r'\s*\[[\d\.]+\]$', '', url)
+            self.logger.debug(f"Extracted URL (ANSI no ESC): {url}")
             return url
         
         # Try without ANSI codes (plain text output - more common)
@@ -101,7 +110,7 @@ class WPScanParser:
         
         # Find the WordPress version section
         version_section = re.search(
-            r'WordPress version.*?(?=\n\[\+\]|\n\n\[\+\]|$)', 
+            r'WordPress version.*?(?=\n(?:\x1b)?\[32m\[\+\]|\n\n(?:\x1b)?\[32m\[\+\]|$)', 
             content, 
             re.DOTALL
         )
@@ -110,10 +119,10 @@ class WPScanParser:
         
         section = version_section.group(0)
         
-        # Extract individual vulnerabilities (works with both ANSI and plain text)
-        # Pattern handles both [31m[!][0m (colored) and [!] (plain)
+        # Extract individual vulnerabilities (handles ESC codes, ANSI, and plain text)
+        # Pattern: \x1b[31m[!]\x1b[0m or [31m[!][0m or just [!]
         vuln_pattern = (
-            r'(?:\[31m)?\[!\](?:\[0m)?\s+Title:\s*(.+?)\n'
+            r'(?:\x1b)?\[31m\[!\](?:\x1b)?\[0m\s+Title:\s*(.+?)\n'
             r'(?:.*?CVSS:\s*([0-9.]+).*?\n)?'
             r'(?:.*?Fixed in:\s*([0-9.]+).*?\n)?'
             r'(?:.*?(https://cve\.mitre\.org/[^\s]+))?'
@@ -136,11 +145,11 @@ class WPScanParser:
         """Extract theme information and vulnerabilities"""
         themes = []
         
-        # Find theme sections (both ANSI and plain text)
+        # Find theme sections (with ESC codes, ANSI, and plain text)
         theme_pattern = (
-            r'(?:\[32m)?\[\+\](?:\[0m)?\s+WordPress theme in use:\s*(.+?)\n'
+            r'(?:\x1b)?\[32m\[\+\](?:\x1b)?\[0m\s+WordPress theme in use:\s*(.+?)\n'
             r'(.*?)'
-            r'(?=(?:\[32m)?\[\+\]|$)'
+            r'(?=(?:\x1b)?\[32m\[\+\]|$)'
         )
         theme_sections = re.finditer(theme_pattern, content, re.DOTALL)
         
@@ -160,9 +169,9 @@ class WPScanParser:
             style_match = re.search(r'Style URL:\s*(https?://[^\s]+)', theme_content)
             style_url = style_match.group(1) if style_match else None
             
-            # Extract vulnerabilities (both ANSI and plain)
+            # Extract vulnerabilities (with ESC codes)
             vuln_pattern = (
-                r'(?:\[31m)?\[!\](?:\[0m)?\s+Title:\s*(.+?)\n'
+                r'(?:\x1b)?\[31m\[!\](?:\x1b)?\[0m\s+Title:\s*(.+?)\n'
                 r'(?:.*?CVSS:\s*([0-9.]+).*?\n)?'
                 r'(?:.*?Fixed in:\s*([0-9.]+).*?\n)?'
             )
@@ -195,9 +204,9 @@ class WPScanParser:
         """Extract interesting findings like XML-RPC, directory listing, etc."""
         findings = []
         
-        # XML-RPC (both ANSI and plain text)
+        # XML-RPC (with ESC codes, ANSI, and plain text)
         xmlrpc_match = re.search(
-            r'(?:\[32m)?\[\+\](?:\[0m)?\s+XML-RPC seems to be enabled:\s*(https?://[^\s]+)', 
+            r'(?:\x1b)?\[32m\[\+\](?:\x1b)?\[0m\s+XML-RPC seems to be enabled:\s*(https?://[^\s]+)', 
             content
         )
         if xmlrpc_match:

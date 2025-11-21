@@ -1,0 +1,61 @@
+_______________________________________________________________
+         __          _______   _____
+         \ \        / /  __ \ / ____|
+          \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®
+           \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \
+            \  /\  /  | |     ____) | (__| (_| | | | |
+             \/  \/   |_|    |_____/ \___|\__,_|_| |_|
+
+         WordPress Security Scanner by the WPScan Team
+                         Version 3.8.28
+       Sponsored by Automattic - https://automattic.com/
+       @_WPScan_, @ethicalhack3r, @erwan_lr, @firefart
+_______________________________________________________________
+
+[32m[+][0m URL: https://benefits.quikrete.com/ [198.51.136.28]
+[32m[+][0m Started: Wed Nov 12 14:39:15 2025
+
+Interesting Finding(s):
+
+[32m[+][0m Headers
+ | Interesting Entry: server: Apache
+ | Found By: Headers (Passive Detection)
+ | Confidence: 100%
+
+[32m[+][0m XML-RPC seems to be enabled: https://benefits.quikrete.com/wp/xmlrpc.php
+ | Found By: Link Tag (Passive Detection)
+ | Confidence: 30%
+ | References:
+ |  - http://codex.wordpress.org/XML-RPC_Pingback_API
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_ghost_scanner/
+ |  - https://www.rapid7.com/db/modules/auxiliary/dos/http/wordpress_xmlrpc_dos/
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_xmlrpc_login/
+ |  - https://www.rapid7.com/db/modules/auxiliary/scanner/http/wordpress_pingback_access/
+
+[32m[+][0m WordPress version 4.8.25 identified (Insecure, released on 2024-06-24).
+ | Found By: Rss Generator (Passive Detection)
+ |  - https://benefits.quikrete.com/feed/, <generator>https://wordpress.org/?v=4.8.25</generator>
+ |  - https://benefits.quikrete.com/comments/feed/, <generator>https://wordpress.org/?v=4.8.25</generator>
+ |
+ | [31m[!][0m 2 vulnerabilities identified:
+ |
+ | [31m[!][0m Title: WP < 6.8.3 - Author+ DOM Stored XSS
+ |     CVSS: 5.9 (CVSS:3.1/AV:N/AC:L/PR:H/UI:R/S:C/C:L/I:L/A:L)
+ |     Fixed in: 4.8.27
+ |     References:
+ |      - https://wpscan.com/vulnerability/c4616b57-770f-4c40-93f8-29571c80330a
+ |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2025-58674
+ |      - https://patchstack.com/database/wordpress/wordpress/wordpress/vulnerability/wordpress-wordpress-wordpress-6-8-2-cross-site-scripting-xss-vulnerability
+ |      -  https://wordpress.org/news/2025/09/wordpress-6-8-3-release/
+ |
+ | [31m[!][0m Title: WP < 6.8.3 - Contributor+ Sensitive Data Disclosure
+ |     CVSS: 2.7 (CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:L/I:N/A:N)
+ |     Fixed in: 4.8.27
+ |     References:
+ |      - https://wpscan.com/vulnerability/1e2dad30-dd95-4142-903b-4d5c580eaad2
+ |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2025-58246
+ |      - https://patchstack.com/database/wordpress/wordpress/wordpress/vulnerability/wordpress-wordpress-wordpress-6-8-2-sensitive-data-exposure-vulnerability
+ |      - https://wordpress.org/news/2025/09/wordpress-6-8-3-release/
+
+[32m[+][0m WordPress theme in use: Divi-child
+
