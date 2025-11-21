@@ -1,0 +1,53 @@
+_______________________________________________________________
+         __          _______   _____
+         \ \        / /  __ \ / ____|
+          \ \  /\  / /| |__) | (___   ___  __ _ _ __ ®
+           \ \/  \/ / |  ___/ \___ \ / __|/ _` | '_ \
+            \  /\  /  | |     ____) | (__| (_| | | | |
+             \/  \/   |_|    |_____/ \___|\__,_|_| |_|
+
+         WordPress Security Scanner by the WPScan Team
+                         Version 3.8.28
+_______________________________________________________________
+
+[+] URL: http://localhost:8080/ [127.0.0.1]
+[+] Started: Fri Nov 21 12:11:00 2025
+
+Interesting Finding(s):
+
+[+] Headers
+ | Interesting Entry: server: Apache/2.4.25
+ | Found By: Headers (Passive Detection)
+
+[+] XML-RPC seems to be enabled: http://localhost:8080/xmlrpc.php
+ | Found By: Link Tag (Passive Detection)
+
+[+] WordPress version 5.2.1 identified (Insecure, released on 2019-05-21).
+ | Found By: Rss Generator (Passive Detection)
+ |  - http://localhost:8080/feed/, <generator>https://wordpress.org/?v=5.2.1</generator>
+ |
+ | [!] 3 vulnerabilities identified:
+ |
+ | [!] Title: WordPress <= 5.2.2 - Cross-Site Scripting (XSS) in URL Sanitization
+ |     CVSS: 6.1
+ |     Fixed in: 5.2.3
+ |     References:
+ |      - https://wpscan.com/vulnerability/4494a903-5a73-4cad-8c14-1e7b4da2be61
+ |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-16773
+ |
+ | [!] Title: WordPress <= 5.2.3 - Stored XSS in Customizer
+ |     CVSS: 6.5
+ |     Fixed in: 5.2.4
+ |     References:
+ |      - https://wpscan.com/vulnerability/d39a7b84-28b9-4916-a2fc-6192ceb6fa56
+ |      - https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2019-17671
+
+[+] WordPress theme in use: twentynineteen
+ | Location: http://localhost:8080/wp-content/themes/twentynineteen/
+ | Style URL: http://localhost:8080/wp-content/themes/twentynineteen/style.css
+ |
+ | Version: 1.4 (80% confidence)
+ | Found By: Style (Passive Detection)
+
+[+] Finished: Fri Nov 21 12:11:05 2025
+

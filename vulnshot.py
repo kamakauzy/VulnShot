@@ -60,7 +60,7 @@ class VulnShot:
         start_time = datetime.now()
         
         print(f"\n{Fore.RED}{'='*60}")
-        print(f"  🔴 VulnShot - Visual Vulnerability Evidence Generator")
+        print(f"  VulnShot - Visual Vulnerability Evidence Generator")
         print(f"{'='*60}{Style.RESET_ALL}\n")
         
         # Parse scanner output
@@ -84,7 +84,7 @@ class VulnShot:
                 print(f"{Fore.YELLOW}Run WPScan with: wpscan --url <target> --format cli-no-colour{Style.RESET_ALL}")
                 sys.exit(1)
             
-            print(f"{Fore.GREEN}✓ Parsed WPScan results{Style.RESET_ALL}")
+            print(f"{Fore.GREEN}[+] Parsed WPScan results{Style.RESET_ALL}")
             print(f"  Target: {Fore.CYAN}{scan_data['url']}{Style.RESET_ALL}")
             
             if scan_data.get('wordpress_version'):
@@ -116,9 +116,9 @@ class VulnShot:
         successful = len([s for s in screenshots if s.get('status') == 'success'])
         failed = len([s for s in screenshots if s.get('status') == 'failed'])
         
-        print(f"\n{Fore.GREEN}✓ Captured {successful} screenshots{Style.RESET_ALL}")
+        print(f"\n{Fore.GREEN}[+] Captured {successful} screenshots{Style.RESET_ALL}")
         if failed > 0:
-            print(f"{Fore.YELLOW}⚠ {failed} failed{Style.RESET_ALL}")
+            print(f"{Fore.YELLOW}[!] {failed} failed{Style.RESET_ALL}")
         
         # Generate report
         print(f"\n{Fore.CYAN}Generating visual evidence report...{Style.RESET_ALL}\n")
