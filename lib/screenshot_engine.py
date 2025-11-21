@@ -285,35 +285,45 @@ class VulnScreenshotEngine:
     def _annotate_version_screenshot(self, screenshot_bytes: bytes, version: str, element: str) -> Image:
         """Add annotations to WordPress version screenshot"""
         image = Image.open(io.BytesIO(screenshot_bytes))
-        draw = ImageDraw.Draw(image)
+        
+        # Create a semi-transparent overlay at the BOTTOM
+        overlay = Image.new('RGBA', image.size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(overlay)
         
         # Try to load a font, fall back to default
         try:
-            font = ImageFont.truetype("arial.ttf", 24)
-            font_large = ImageFont.truetype("arial.ttf", 32)
+            font = ImageFont.truetype("arial.ttf", 20)
+            font_large = ImageFont.truetype("arial.ttf", 28)
         except:
             font = ImageFont.load_default()
             font_large = ImageFont.load_default()
         
-        # Add overlay at top
-        overlay_height = 120
-        draw.rectangle([(0, 0), (image.width, overlay_height)], fill=(220, 53, 69, 230))
+        # Add semi-transparent red banner at BOTTOM
+        overlay_height = 100
+        y_start = image.height - overlay_height
+        draw.rectangle([(0, y_start), (image.width, image.height)], fill=(220, 53, 69, 200))
         
         # Add text
-        draw.text((20, 15), "🔴 VULNERABILITY FOUND", fill=(255, 255, 255), font=font_large)
-        draw.text((20, 55), f"WordPress Version {version} Disclosed", fill=(255, 255, 255), font=font)
-        draw.text((20, 85), f"Found in: {element}", fill=(255, 255, 255), font=font)
+        draw.text((20, y_start + 10), "VULNERABILITY: WordPress Version Disclosure", fill=(255, 255, 255), font=font_large)
+        draw.text((20, y_start + 45), f"Version {version} exposed via {element}", fill=(255, 255, 255), font=font)
         
-        return image
+        # Composite the overlay onto the original image
+        image = image.convert('RGBA')
+        final = Image.alpha_composite(image, overlay)
+        
+        return final.convert('RGB')
     
     def _annotate_theme_screenshot(self, screenshot_bytes: bytes, theme_name: str, version: str, vuln_count: int) -> Image:
         """Add annotations to theme screenshot"""
         image = Image.open(io.BytesIO(screenshot_bytes))
-        draw = ImageDraw.Draw(image)
+        
+        # Create semi-transparent overlay at the BOTTOM
+        overlay = Image.new('RGBA', image.size, (0, 0, 0, 0))
+        draw = ImageDraw.Draw(overlay)
         
         try:
-            font = ImageFont.truetype("arial.ttf", 24)
-            font_large = ImageFont.truetype("arial.ttf", 32)
+            font = ImageFont.truetype("arial.ttf", 20)
+            font_large = ImageFont.truetype("arial.ttf", 28)
         except:
             font = ImageFont.load_default()
             font_large = ImageFont.load_default()
@@ -321,17 +331,19 @@ class VulnScreenshotEngine:
         # Color based on vuln count
         color = (220, 53, 69) if vuln_count > 0 else (255, 193, 7)
         
-        overlay_height = 150
-        draw.rectangle([(0, 0), (image.width, overlay_height)], fill=color + (230,))
+        # Semi-transparent banner at BOTTOM
+        overlay_height = 100
+        y_start = image.height - overlay_height
+        draw.rectangle([(0, y_start), (image.width, image.height)], fill=color + (200,))
         
-        draw.text((20, 15), f"{'🔴' if vuln_count > 0 else '⚠️'} THEME VERSION FOUND", fill=(255, 255, 255), font=font_large)
-        draw.text((20, 55), f"Theme: {theme_name}", fill=(255, 255, 255), font=font)
-        draw.text((20, 85), f"Version: {version}", fill=(255, 255, 255), font=font)
+        draw.text((20, y_start + 10), f"VULNERABILITY: Theme {theme_name} v{version}", fill=(255, 255, 255), font=font_large)
+        draw.text((20, y_start + 45), f"{vuln_count} known vulnerabilities", fill=(255, 255, 255), font=font)
         
-        if vuln_count > 0:
-            draw.text((20, 115), f"⚠️ {vuln_count} Known Vulnerabilities", fill=(255, 255, 255), font=font)
+        # Composite
+        image = image.convert('RGBA')
+        final = Image.alpha_composite(image, overlay)
         
-        return image
+        return final.convert('RGB')
     
     def _annotate_finding_screenshot(self, screenshot_bytes: bytes, finding_type: str, description: str) -> Image:
         """Add annotations to interesting finding screenshot"""
