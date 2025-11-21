@@ -50,7 +50,7 @@ class VulnShot:
         log_format = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         
         logging.basicConfig(
-            level=log_level,
+            level=logging.DEBUG,  # Always show debug for troubleshooting
             format=log_format,
             handlers=[logging.StreamHandler()]
         )
