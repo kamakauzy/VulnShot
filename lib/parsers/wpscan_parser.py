@@ -43,9 +43,25 @@ class WPScanParser:
     
     def _extract_url(self, content: str) -> str:
         """Extract target URL"""
-        match = re.search(r'\[32m\[\+\]\[0m URL: (https?://[^\s]+)', content)
+        # Try with ANSI color codes
+        match = re.search(r'\[32m\[\+\]\[0m URL: (https?://[^\s\]]+)', content)
         if match:
-            return match.group(1).rstrip('/')
+            url = match.group(1).rstrip('/')
+            # Remove any trailing bracket or IP notation
+            url = re.sub(r'\s*\[.*$', '', url)
+            self.logger.debug(f"Extracted URL (ANSI): {url}")
+            return url
+        
+        # Try without ANSI codes (plain text)
+        match = re.search(r'\[\+\]\s+URL:\s+(https?://[^\s\]]+)', content)
+        if match:
+            url = match.group(1).rstrip('/')
+            url = re.sub(r'\s*\[.*$', '', url)
+            self.logger.debug(f"Extracted URL (plain): {url}")
+            return url
+        
+        self.logger.error("Could not extract URL from WPScan output")
+        self.logger.debug(f"First 500 chars of content:\n{content[:500]}")
         return None
     
     def _extract_wp_version(self, content: str) -> Dict:

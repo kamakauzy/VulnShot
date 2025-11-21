@@ -67,10 +67,21 @@ class VulnShot:
         if args.wpscan:
             self.logger.info(f"Parsing WPScan output: {args.wpscan}")
             parser = WPScanParser()
-            scan_data = parser.parse(args.wpscan)
+            
+            try:
+                scan_data = parser.parse(args.wpscan)
+            except FileNotFoundError:
+                print(f"{Fore.RED}Error: File not found: {args.wpscan}{Style.RESET_ALL}")
+                sys.exit(1)
+            except Exception as e:
+                print(f"{Fore.RED}Error parsing file: {e}{Style.RESET_ALL}")
+                self.logger.error(f"Parse error: {e}", exc_info=True)
+                sys.exit(1)
             
             if not scan_data.get('url'):
                 print(f"{Fore.RED}Error: Could not parse WPScan output{Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}Make sure the file is valid WPScan output in text format.{Style.RESET_ALL}")
+                print(f"{Fore.YELLOW}Run WPScan with: wpscan --url <target> --format cli-no-colour{Style.RESET_ALL}")
                 sys.exit(1)
             
             print(f"{Fore.GREEN}✓ Parsed WPScan results{Style.RESET_ALL}")
