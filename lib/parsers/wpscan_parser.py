@@ -43,20 +43,23 @@ class WPScanParser:
     
     def _extract_url(self, content: str) -> str:
         """Extract target URL"""
-        # Try with ANSI color codes
-        match = re.search(r'\[32m\[\+\]\[0m URL: (https?://[^\s\]]+)', content)
+        # Try with ANSI color codes (colored output)
+        match = re.search(r'\[32m\[\+\]\[0m URL:\s+(https?://[^\s]+)', content)
         if match:
-            url = match.group(1).rstrip('/')
-            # Remove any trailing bracket or IP notation
-            url = re.sub(r'\s*\[.*$', '', url)
+            url = match.group(1)
+            # Remove trailing slash and any IP notation in brackets
+            url = url.rstrip('/')
+            url = re.sub(r'\s*\[[\d\.]+\]$', '', url)
             self.logger.debug(f"Extracted URL (ANSI): {url}")
             return url
         
-        # Try without ANSI codes (plain text)
-        match = re.search(r'\[\+\]\s+URL:\s+(https?://[^\s\]]+)', content)
+        # Try without ANSI codes (plain text output - more common)
+        match = re.search(r'^\[\+\]\s+URL:\s+(https?://[^\s]+)', content, re.MULTILINE)
         if match:
-            url = match.group(1).rstrip('/')
-            url = re.sub(r'\s*\[.*$', '', url)
+            url = match.group(1)
+            # Remove trailing slash and any IP notation in brackets
+            url = url.rstrip('/')
+            url = re.sub(r'\s*\[[\d\.]+\]$', '', url)
             self.logger.debug(f"Extracted URL (plain): {url}")
             return url
         
@@ -97,21 +100,26 @@ class WPScanParser:
         vulns = []
         
         # Find the WordPress version section
-        version_section = re.search(r'WordPress version.*?(?=\n\[32m\[\+\]|$)', content, re.DOTALL)
+        version_section = re.search(
+            r'WordPress version.*?(?=\n\[\+\]|\n\n\[\+\]|$)', 
+            content, 
+            re.DOTALL
+        )
         if not version_section:
             return vulns
         
         section = version_section.group(0)
         
-        # Extract individual vulnerabilities
-        vuln_blocks = re.findall(
-            r'\[31m\[!\]\[0m Title: (.+?)\n.*?'
-            r'(?:CVSS: ([0-9.]+).*?\n)?.*?'
-            r'(?:Fixed in: ([0-9.]+)\n)?.*?'
-            r'(?:- (https://cve\.mitre\.org/[^\s]+))?',
-            section,
-            re.DOTALL
+        # Extract individual vulnerabilities (works with both ANSI and plain text)
+        # Pattern handles both [31m[!][0m (colored) and [!] (plain)
+        vuln_pattern = (
+            r'(?:\[31m)?\[!\](?:\[0m)?\s+Title:\s*(.+?)\n'
+            r'(?:.*?CVSS:\s*([0-9.]+).*?\n)?'
+            r'(?:.*?Fixed in:\s*([0-9.]+).*?\n)?'
+            r'(?:.*?(https://cve\.mitre\.org/[^\s]+))?'
         )
+        
+        vuln_blocks = re.findall(vuln_pattern, section, re.DOTALL)
         
         for vuln in vuln_blocks:
             vulns.append({
@@ -128,41 +136,39 @@ class WPScanParser:
         """Extract theme information and vulnerabilities"""
         themes = []
         
-        # Find theme sections
-        theme_sections = re.finditer(
-            r'\[32m\[\+\]\[0m WordPress theme in use: (.+?)\n'
+        # Find theme sections (both ANSI and plain text)
+        theme_pattern = (
+            r'(?:\[32m)?\[\+\](?:\[0m)?\s+WordPress theme in use:\s*(.+?)\n'
             r'(.*?)'
-            r'(?=\[32m\[\+\]|$)',
-            content,
-            re.DOTALL
+            r'(?=(?:\[32m)?\[\+\]|$)'
         )
+        theme_sections = re.finditer(theme_pattern, content, re.DOTALL)
         
         for theme_section in theme_sections:
             theme_name = theme_section.group(1).strip()
             theme_content = theme_section.group(2)
             
             # Extract version
-            version_match = re.search(r'Version: ([0-9.]+)', theme_content)
+            version_match = re.search(r'Version:\s*([0-9.]+)', theme_content)
             version = version_match.group(1) if version_match else None
             
             # Extract location
-            location_match = re.search(r'Location: (https?://[^\s]+)', theme_content)
+            location_match = re.search(r'Location:\s*(https?://[^\s]+)', theme_content)
             location = location_match.group(1) if location_match else None
             
             # Extract style URL
-            style_match = re.search(r'Style URL: (https?://[^\s]+)', theme_content)
+            style_match = re.search(r'Style URL:\s*(https?://[^\s]+)', theme_content)
             style_url = style_match.group(1) if style_match else None
             
-            # Extract vulnerabilities
-            vulns = []
-            vuln_blocks = re.findall(
-                r'\[31m\[!\]\[0m Title: (.+?)\n.*?'
-                r'(?:CVSS: ([0-9.]+).*?\n)?.*?'
-                r'(?:Fixed in: ([0-9.]+)\n)?',
-                theme_content,
-                re.DOTALL
+            # Extract vulnerabilities (both ANSI and plain)
+            vuln_pattern = (
+                r'(?:\[31m)?\[!\](?:\[0m)?\s+Title:\s*(.+?)\n'
+                r'(?:.*?CVSS:\s*([0-9.]+).*?\n)?'
+                r'(?:.*?Fixed in:\s*([0-9.]+).*?\n)?'
             )
+            vuln_blocks = re.findall(vuln_pattern, theme_content, re.DOTALL)
             
+            vulns = []
             for vuln in vuln_blocks:
                 vulns.append({
                     'title': vuln[0].strip(),
@@ -189,8 +195,11 @@ class WPScanParser:
         """Extract interesting findings like XML-RPC, directory listing, etc."""
         findings = []
         
-        # XML-RPC
-        xmlrpc_match = re.search(r'XML-RPC seems to be enabled: (https?://[^\s]+)', content)
+        # XML-RPC (both ANSI and plain text)
+        xmlrpc_match = re.search(
+            r'(?:\[32m)?\[\+\](?:\[0m)?\s+XML-RPC seems to be enabled:\s*(https?://[^\s]+)', 
+            content
+        )
         if xmlrpc_match:
             findings.append({
                 'type': 'XML-RPC Enabled',
